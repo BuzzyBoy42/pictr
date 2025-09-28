@@ -3,136 +3,205 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>pictr — One-File Photo Editor</title>
+<title>pictr — delightful one-file photo editor</title>
 <style>
   :root{
-    --bg:#0b0f14;--panel:#121821;--card:#131a24;--muted:#0f1520;--accent:#6ee7ff;--accent-2:#a78bfa;
-    --text:#e6edf7;--sub:#9fb2c8;--border:#1f2a3a;--ok:#34d399;--warn:#f59e0b;--danger:#ef4444;
+    --bg:#0a0f16; --bg2:#0d141d; --card:#0f1724; --card2:#101b2b;
+    --text:#e8f0fb; --muted:#9fb0c9; --muted2:#7f93b3;
+    --border:#172235; --border2:#20324a;
+    --accent:#68e0ff; --accent2:#a58bff; --ok:#34d399; --warn:#f59e0b; --danger:#ef4444;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:radial-gradient(1200px 800px at 10% -10%, #0e1622 0%, var(--bg) 60%);color:var(--text);
-    font:14px/1.3 system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";overflow:hidden}
-  .app{display:grid;grid-template-rows:56px 1fr 48px;height:100%}
-  header{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);
-    background:linear-gradient(180deg,#101724 0%,#0b121c 100%);position:relative;z-index:3}
-  header .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px;text-transform:lowercase}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:conic-gradient(from 180deg,var(--accent),var(--accent-2));box-shadow:0 0 10px var(--accent)}
-  .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  body{
+    margin:0;background:
+      radial-gradient(1000px 600px at 10% -20%, #0e1930 0%, transparent 60%),
+      radial-gradient(900px 600px at 90% -20%, #102237 0%, transparent 60%),
+      linear-gradient(180deg, #0a0f16 0%, #0a0f16 100%);
+    color:var(--text);
+    font:14px/1.35 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    overflow:hidden;
+  }
+
+  /* Layout */
+  .app{display:grid;grid-template-rows:72px 1fr 54px;height:100%}
+  header{
+    display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#0f1622,#0b121c); position:relative; z-index:3;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.2px;text-transform:lowercase}
+  .brand .dot{width:12px;height:12px;border-radius:50%;
+    background:conic-gradient(from 180deg,var(--accent),var(--accent2));box-shadow:0 0 18px var(--accent)}
   .spacer{flex:1}
-  .btn{background:linear-gradient(180deg,#1a2432,#121a25);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.15s;user-select:none}
-  .btn:hover{transform:translateY(-1px);background:#182233}
+
+  /* Buttons */
+  .btn{
+    background:linear-gradient(180deg,#172233,#121a27);border:1px solid var(--border);
+    color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    transition:transform .12s ease, background .12s ease, box-shadow .12s ease; user-select:none; white-space:nowrap;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:var(--shadow)}
   .btn:active{transform:translateY(0)}
-  .btn[aria-pressed="true"]{outline:2px solid var(--accent);background:#162235}
-  .btn.small{padding:4px 8px;border-radius:8px;font-size:12px}
+  .btn[aria-pressed="true"]{outline:2px solid var(--accent); background:#18263a}
+  .btn.small{padding:8px 10px;border-radius:10px;font-size:12px}
   .btn.ghost{background:transparent}
   .btn.ok{border-color:#1c3b32;background:#0f1e19}
   .btn.warn{border-color:#3a2d12;background:#1a1408}
   .btn.danger{border-color:#3a1212;background:#1a0c0c}
   input[type="file"]{display:none}
-  .main{display:grid;grid-template-columns:300px 1fr 320px;gap:10px;padding:10px;min-height:0}
-  .panel{background:linear-gradient(180deg,#0e1521,#0a1019);border:1px solid var(--border);border-radius:14px;overflow:auto;min-height:0;box-shadow:inset 0 10px 30px rgba(0,0,0,.25)}
-  .panel h3{margin:12px 12px 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--sub)}
-  .panel .section{padding:10px 12px;border-top:1px solid #0f1622}
-  .panel .row{display:grid;grid-template-columns:1fr 64px;align-items:center;gap:10px;margin:8px 0}
-  .panel .row .label{color:var(--sub);font-size:12px}
-  .panel .row input[type="range"]{width:100%}
-  .panel .row .val{font-variant-numeric:tabular-nums;text-align:right;color:#cbd8e6}
-  .panel .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .viewer{position:relative;background:repeating-conic-gradient(#1a2534 0% 25%, #172131 0% 50%) 50%/24px 24px;border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:0}
-  .dropzone{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;border:2px dashed #2a3950;border-radius:12px;color:#b8c7dc;background:rgba(15,22,34,.5);pointer-events:none;opacity:0;transition:.2s}
-  .dropzone.show{opacity:1}
+
+  /* Main grid */
+  .main{display:grid;grid-template-columns:280px 1fr 320px;gap:12px;padding:12px;min-height:0}
+  @media (max-width:1200px){ .main{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto} }
+
+  /* Cards / panels */
+  .panel{
+    background:linear-gradient(180deg,var(--card),var(--card2));
+    border:1px solid var(--border); border-radius:16px; overflow:auto; min-height:0; box-shadow:inset 0 14px 40px rgba(0,0,0,.25)
+  }
+  .panel h3{margin:12px 12px 6px;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+  .section{padding:12px;border-top:1px solid #0f1726}
+  .row{display:grid;grid-template-columns:1fr 70px;align-items:center;gap:10px;margin:10px 0}
+  .label{color:var(--muted);font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .preset-list{display:flex;gap:8px;overflow:auto;padding:8px 12px}
+
+  /* Viewer */
+  .viewer{
+    position:relative;
+    background:
+      conic-gradient(from 90deg at 25% 25%, #172538 0 25%, #132034 0 50%, #172538 0 75%, #132034 0 100%) center/24px 24px,
+      linear-gradient(180deg,#0b1220,#0b1220);
+    border:1px solid var(--border); border-radius:18px; overflow:hidden; min-height:0;
+  }
+  .dropzone{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; border:2px dashed #2b3c57; border-radius:14px; color:#bfd4f9; background:rgba(12,19,33,.55);
+    pointer-events:none; opacity:0; transform:scale(.97); transition:.18s ease;
+  }
+  .dropzone.show{opacity:1; transform:scale(1)}
   canvas#preview{position:absolute;top:0;left:0}
   .overlay{position:absolute;inset:0;pointer-events:none}
-  .hud{position:absolute;left:10px;bottom:10px;background:#0c1420cc;border:1px solid var(--border);padding:6px 10px;border-radius:8px;color:#c0d1e8;font-size:12px;display:flex;gap:10px;align-items:center}
-  .status-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 6px #3b82f6}
-  .zoom-badge{position:absolute;right:10px;bottom:10px;background:#0c1420cc;border:1px solid var(--border);padding:6px 10px;border-radius:8px;font-size:12px}
-  .footer{display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--border);background:#0b121c}
-  .kbd{border:1px solid #2a3648;background:#121b28;padding:2px 6px;border-radius:6px;font-size:12px;color:#c9d7ea}
-  .preset-list{display:flex;gap:8px;overflow:auto;padding:8px 12px}
-  .chip{flex:0 0 auto;padding:6px 10px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:#101826;color:#cfe3ff;transition:.15s;font-size:12px}
-  .chip:hover{background:#182437}
+  .hud{position:absolute;left:12px;bottom:12px;background:#0c1420dd;border:1px solid var(--border);padding:8px 10px;border-radius:10px;color:#c0d1e8;font-size:12px;display:flex;gap:10px;align-items:center;backdrop-filter:blur(6px)}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8}
+  .zoom-badge{position:absolute;right:12px;bottom:12px;background:#0c1420dd;border:1px solid var(--border);padding:8px 10px;border-radius:10px;font-size:12px;backdrop-filter:blur(6px)}
+
+  /* Slider */
+  .range{appearance:none;width:100%;height:6px;border-radius:999px;background:#1a2435;outline:none}
+  .range::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;
+    background:linear-gradient(180deg,#e7f3ff,#a7d4ff);border:1px solid #7bb7ff;box-shadow:0 0 0 4px #132139}
+  .val{font-variant-numeric:tabular-nums;text-align:right;color:#cbd8e6}
+
+  /* Chips */
+  .chip{flex:0 0 auto;padding:8px 12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:#0f1a2a;color:#cfe3ff;transition:.15s;font-size:12px}
+  .chip:hover{background:#15233a}
+
+  /* Layers / text */
   .layer-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px}
   .layer-row:hover{background:#0f1725}
   .thumb{width:22px;height:22px;border-radius:4px;background:#1b2536;display:inline-block;border:1px solid #223149}
-  .note{color:#9fb2c8;font-size:12px;padding:6px 12px}
-  .range{appearance:none;width:100%;height:4px;border-radius:999px;background:#1b2433;outline:none}
-  .range::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:linear-gradient(180deg,#e6f3ff,#a8d5ff);border:1px solid #7bb7ff;box-shadow:0 0 0 3px #142135}
-  .hidden{display:none}
-  @media (max-width:1100px){
-    .main{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto}
-    .viewer{min-height:360px}
+  .note{color:var(--muted);font-size:12px;padding:6px 12px}
+
+  /* Footer */
+  .footer{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border);background:#0b121c}
+  .kbd{border:1px solid #2a3648;background:#121b28;padding:2px 6px;border-radius:6px;font-size:12px;color:#c9d7ea}
+
+  /* Collapsible sections (UX nicety) */
+  .collapsible{border-top:1px solid #0f1726}
+  .collapsible summary{
+    list-style:none; cursor:pointer; user-select:none;
+    padding:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+    display:flex; align-items:center; gap:8px;
   }
+  .collapsible summary::-webkit-details-marker{display:none}
+  .chev{transition:transform .2s ease}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .collapsible .content{padding:12px; border-top:1px dashed #17233a}
 </style>
 </head>
 <body>
 <div class="app">
+  <!-- HEADER -->
   <header>
-    <div class="brand"><span class="dot"></span> pictr</div>
+    <div class="brand"><span class="dot"></span>pictr</div>
 
-    <!-- OPEN: robust (adds RAW support) -->
     <input id="fileInput" type="file"
-      accept="image/*,.cr2,.cr3,.nef,.arw,.raf,.dng,.orf,.rw2,.pef,.srw,.kdc,.mrw,.erf"
-      capture="environment" />
-    <button id="btnOpen" class="btn small" title="Open (O)">Open</button>
-    <button id="btnPaste" class="btn small ghost" title="Paste (Ctrl/Cmd+V)">Paste</button>
-    <button id="btnDemo" class="btn small ghost" title="Load demo image">Demo</button>
+      accept="image/*,.cr2,.cr3,.nef,.arw,.raf,.dng,.orf,.rw2,.pef,.srw,.kdc,.mrw,.erf" capture="environment" />
+    <button id="btnOpen" class="btn" title="Open (O)">➕ Import</button>
+    <button id="btnPaste" class="btn ghost small" title="Paste (Ctrl/Cmd+V)">Paste</button>
+    <button id="btnDemo" class="btn ghost small" title="Load demo image">Demo</button>
 
-    <button id="btnReset" class="btn small ghost" title="Reset (R)">Reset</button>
-    <div class="toolbar">
+    <div class="spacer"></div>
+
+    <div class="btn-group">
       <button class="btn small" id="toolMove" aria-pressed="true" title="Move (V)">Move</button>
       <button class="btn small" id="toolCrop" title="Crop (C)">Crop</button>
       <button class="btn small" id="toolBrush" title="Brush (B)">Brush</button>
       <button class="btn small" id="toolText" title="Text (T)">Text</button>
       <button class="btn small" id="toolErase" title="Eraser (E)">Erase</button>
     </div>
+
     <div class="spacer"></div>
-    <div class="toolbar">
-      <button class="btn small" id="btnUndo" title="Undo (Ctrl/Cmd+Z)">Undo</button>
-      <button class="btn small" id="btnRedo" title="Redo (Ctrl/Cmd+Shift+Z)">Redo</button>
-      <button class="btn small" id="btnFit" title="Fit (F)">Fit</button>
-      <button class="btn small" id="btnZoomIn" title="Zoom In (+)">+</button>
-      <button class="btn small" id="btnZoomOut" title="Zoom Out (–)">–</button>
-      <button class="btn small ok" id="btnExport" title="Export (E)">Export</button>
-    </div>
+
+    <button class="btn small" id="btnFit" title="Fit (F)">Fit</button>
+    <button class="btn small" id="btnZoomOut" title="Zoom Out (–)">–</button>
+    <button class="btn small" id="btnZoomIn" title="Zoom In (+)">+</button>
+    <button class="btn small ok" id="btnExport" title="Export (E)">Export</button>
   </header>
 
+  <!-- MAIN -->
   <div class="main">
-    <!-- LEFT -->
-    <div class="panel" id="leftPanel" aria-label="Presets and History">
-      <h3>Presets</h3>
-      <div class="preset-list" id="presets">
-        <div class="chip" data-preset="auto">Auto</div>
-        <div class="chip" data-preset="bw">B&amp;W</div>
-        <div class="chip" data-preset="vivid">Vivid</div>
-        <div class="chip" data-preset="warm">Warm</div>
-        <div class="chip" data-preset="cool">Cool</div>
-        <div class="chip" data-preset="cinematic">Cinematic</div>
-        <div class="chip" data-preset="matte">Matte</div>
-      </div>
-      <div class="section">
-        <div class="note">History (auto on slider release)</div>
-        <div class="grid">
-          <button class="btn small" id="snapshot">Add Snapshot</button>
-          <button class="btn small" id="revert">Revert to Original</button>
-          <button class="btn small" id="clearHistory">Clear</button>
+    <!-- LEFT: Quick actions / History -->
+    <div class="panel" aria-label="Quick actions and History">
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> Quick actions</summary>
+        <div class="content">
+          <div class="grid">
+            <button class="btn small" id="qaAuto">Auto</button>
+            <button class="btn small" id="qaVivid">Vivid</button>
+            <button class="btn small" id="qaBW">B&amp;W</button>
+          </div>
+          <div class="grid" style="margin-top:8px">
+            <button class="btn small" id="rotateL">⟲ 90°</button>
+            <button class="btn small" id="rotateR">⟳ 90°</button>
+            <button class="btn small" id="resetAll">Reset</button>
+          </div>
         </div>
-        <div id="history" class="section note">No edits yet.</div>
-      </div>
-      <div class="section">
-        <div class="note">Transform</div>
-        <div class="grid">
-          <button class="btn small" id="rotateL">⟲ 90°</button>
-          <button class="btn small" id="rotateR">⟳ 90°</button>
-          <button class="btn small" id="flipH">Flip H</button>
-          <button class="btn small" id="flipV">Flip V</button>
+      </details>
+
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> Presets</summary>
+        <div class="content preset-list" id="presets">
+          <div class="chip" data-preset="auto">Auto</div>
+          <div class="chip" data-preset="vivid">Vivid</div>
+          <div class="chip" data-preset="warm">Warm</div>
+          <div class="chip" data-preset="cool">Cool</div>
+          <div class="chip" data-preset="cinematic">Cinematic</div>
+          <div class="chip" data-preset="matte">Matte</div>
+          <div class="chip" data-preset="bw">B&amp;W</div>
         </div>
-      </div>
+      </details>
+
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> History</summary>
+        <div class="content">
+          <div class="grid">
+            <button class="btn small" id="snapshot">Add Snapshot</button>
+            <button class="btn small" id="revert">Revert</button>
+            <button class="btn small" id="clearHistory">Clear</button>
+          </div>
+          <div id="history" class="section note">No edits yet.</div>
+        </div>
+      </details>
     </div>
 
-    <!-- CENTER -->
+    <!-- CENTER: Viewer -->
     <div class="viewer" id="viewer" aria-label="Canvas Viewer">
-      <div class="dropzone" id="drop">Drop image here, click <b>Open</b>, or press <b>Ctrl/Cmd+V</b> to paste.</div>
+      <div class="dropzone" id="drop">
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">Drop a photo or RAW (CR2/NEF/ARW/DNG…)</div>
+        <div class="note" style="padding:0">Or click <b>Import</b> / press <b>Ctrl/Cmd+V</b></div>
+      </div>
       <canvas id="preview"></canvas>
       <canvas id="paint" class="overlay"></canvas>
       <canvas id="cropHud" class="overlay"></canvas>
@@ -140,62 +209,81 @@
       <div class="zoom-badge"><span id="zoomLabel">100%</span></div>
     </div>
 
-    <!-- RIGHT -->
-    <div class="panel" id="rightPanel" aria-label="Adjustments">
-      <h3>Adjust</h3>
-      <div class="section" id="adjustSection"></div>
+    <!-- RIGHT: Adjust / Layers / Export -->
+    <div class="panel" aria-label="Adjustments and Export">
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> Light</summary>
+        <div class="content" id="lightSection"></div>
+      </details>
 
-      <h3>Crop</h3>
-      <div class="section">
-        <div class="grid" style="grid-template-columns:repeat(4,1fr);">
-          <button class="btn small" data-ratio="free">Free</button>
-          <button class="btn small" data-ratio="1:1">1:1</button>
-          <button class="btn small" data-ratio="4:5">4:5</button>
-          <button class="btn small" data-ratio="3:2">3:2</button>
-          <button class="btn small" data-ratio="16:9">16:9</button>
-          <button class="btn small" id="applyCrop">Apply</button>
-          <button class="btn small ghost" id="cancelCrop">Cancel</button>
-        </div>
-      </div>
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> Color</summary>
+        <div class="content" id="colorSection"></div>
+      </details>
 
-      <h3>Layers</h3>
-      <div class="section" id="layers">
-        <div class="layer-row">
-          <span class="thumb"></span><span>Image</span><span class="spacer"></span>
-          <label class="note"><input id="togglePaint" type="checkbox" checked /> Paint</label>
-          <label class="note"><input id="toggleText" type="checkbox" checked /> Text</label>
-        </div>
-        <div class="note">Brush: size/opacity in floating box. Eraser removes strokes.</div>
-        <div class="grid">
-          <button class="btn small" id="clearPaint">Clear Paint</button>
-          <button class="btn small" id="addLabel">Add Text Label</button>
-        </div>
-        <div id="textList" class="section note">No labels yet.</div>
-      </div>
+      <details class="collapsible">
+        <summary><span class="chev">▶</span> Detail</summary>
+        <div class="content" id="detailSection"></div>
+      </details>
 
-      <h3>Export</h3>
-      <div class="section">
-        <div class="row"><div class="label">Format</div>
-          <div>
-            <select id="fmt" class="btn small" style="width:100%">
-              <option value="image/jpeg">JPEG</option>
-              <option value="image/png">PNG</option>
-              <option value="image/webp">WEBP</option>
-            </select>
+      <details class="collapsible">
+        <summary><span class="chev">▶</span> Crop</summary>
+        <div class="content">
+          <div class="grid" style="grid-template-columns:repeat(4,1fr);">
+            <button class="btn small" data-ratio="free">Free</button>
+            <button class="btn small" data-ratio="1:1">1:1</button>
+            <button class="btn small" data-ratio="4:5">4:5</button>
+            <button class="btn small" data-ratio="3:2">3:2</button>
+            <button class="btn small" data-ratio="16:9">16:9</button>
+            <button class="btn small ok" id="applyCrop">Apply</button>
+            <button class="btn small ghost" id="cancelCrop">Cancel</button>
           </div>
         </div>
-        <div class="row"><div class="label">Quality</div>
-          <div><input id="quality" type="range" class="range" min="0.5" max="1" step="0.01" value="0.92"></div>
+      </details>
+
+      <details class="collapsible">
+        <summary><span class="chev">▶</span> Layers</summary>
+        <div class="content">
+          <div class="layer-row">
+            <span class="thumb"></span><span>Image</span><span class="spacer"></span>
+            <label class="note"><input id="togglePaint" type="checkbox" checked /> Paint</label>
+            <label class="note"><input id="toggleText" type="checkbox" checked /> Text</label>
+          </div>
+          <div class="note">Brush: size/opacity box at top-right. Eraser removes strokes.</div>
+          <div class="grid">
+            <button class="btn small" id="clearPaint">Clear Paint</button>
+            <button class="btn small" id="addLabel">Add Text Label</button>
+          </div>
+          <div id="textList" class="section note">No labels yet.</div>
         </div>
-        <div class="grid">
-          <button class="btn small ok" id="exportNow">Export Now</button>
-          <button class="btn small ghost" id="exportFull">Export Full-Res</button>
+      </details>
+
+      <details class="collapsible" open>
+        <summary><span class="chev">▶</span> Export</summary>
+        <div class="content">
+          <div class="row"><div class="label">Format</div>
+            <div>
+              <select id="fmt" class="btn small" style="width:100%">
+                <option value="image/jpeg">JPEG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/webp">WEBP</option>
+              </select>
+            </div>
+          </div>
+          <div class="row"><div class="label">Quality</div>
+            <div><input id="quality" type="range" class="range" min="0.5" max="1" step="0.01" value="0.92"></div>
+          </div>
+          <div class="grid">
+            <button class="btn small ok" id="exportNow">Export</button>
+            <button class="btn small" id="exportFull">Export Full-Res</button>
+          </div>
+          <div class="note">Full-Res re-renders at original resolution.</div>
         </div>
-        <div class="note">Full-Res re-renders at original resolution before saving.</div>
-      </div>
+      </details>
     </div>
   </div>
 
+  <!-- FOOTER -->
   <div class="footer">
     <div class="note">Shortcuts:
       <span class="kbd">V</span> Move
@@ -204,36 +292,37 @@
       <span class="kbd">E</span> Erase
       <span class="kbd">T</span> Text
       <span class="kbd">F</span> Fit
-      <span class="kbd">R</span> Reset
+      <span class="kbd">Double-click</span> viewer: Fit/100%
       <span class="kbd">⌘/Ctrl+Z</span> Undo
       <span class="kbd">Shift+⌘/Ctrl+Z</span> Redo
-      <span class="kbd">Wheel</span> Zoom
-      <span class="kbd">Drag</span> Pan
     </div>
   </div>
 </div>
 
 <script>
-/* ======= Tiny helpers ======= */
-function qs(s,r=document){return r.querySelector(s)}
-function clamp(v,min,max){return v<min?min:v>max?max:v}
-function lerp(a,b,t){return a+(b-a)*t}
+/* ===== Helpers ===== */
+const qs = (s,r=document)=>r.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const fmt2 = (n)=> (Math.round(n*100)/100).toFixed(2);
 
-/* ======= State ======= */
-// IMPORTANT: saturation defaults to 1 (prevents black & white look)
+/* ===== App State ===== */
+const DEFAULT_PARAMS = {exposure:0,contrast:0,highlights:0,shadows:0,whites:0,blacks:0,temperature:0,tint:0,
+                        vibrance:0.15,saturation:1,clarity:0,sharpness:0,gamma:1,vignette:0};
 const S = {
   img:null, imgBitmap:null, origW:0, origH:0,
   rot:0, flipH:false, flipV:false,
   zoom:1, minZoom:.05, maxZoom:8, viewX:0, viewY:0, dragging:false, dragStart:{}, viewStart:{},
   tool:'move',
-  brush:{size:24, opacity:.8, flow:1, hardness:.8, color:'#ffffff'},
+  brush:{size:26, opacity:.8, hardness:.8, color:'#ffffff'},
   crop:{active:false,x:0,y:0,w:0,h:0,ratio:'free',dragging:false,handle:null,start:{}},
-  params:{exposure:0,contrast:0,highlights:0,shadows:0,whites:0,blacks:0,temperature:0,tint:0,vibrance:0,saturation:1,clarity:0,sharpness:0,gamma:1,vignette:0},
+  params:{...DEFAULT_PARAMS},
   labels:[],
   history:[],historyIdx:-1,
   dirty:false,rendering:false,previewScale:1
 };
 
+/* ===== Elements & Contexts ===== */
 const els = {
   file: qs('#fileInput'),
   open: qs('#btnOpen'), paste: qs('#btnPaste'), demo: qs('#btnDemo'),
@@ -241,71 +330,75 @@ const els = {
   preview: qs('#preview'), paint: qs('#paint'), cropHud: qs('#cropHud'),
   zoomLabel: qs('#zoomLabel'), hudText: qs('#hudText'),
   history: qs('#history'), textList: qs('#textList'),
-  snapshot: qs('#snapshot'), revert: qs('#revert'), clearHistory: qs('#clearHistory'),
+  fmt: qs('#fmt'), quality: qs('#quality'), presets: qs('#presets'),
+  togglePaint: qs('#togglePaint'), toggleText: qs('#toggleText'),
+  quick: { auto: qs('#qaAuto'), vivid: qs('#qaVivid'), bw: qs('#qaBW') },
   buttons: {
     move: qs('#toolMove'), crop: qs('#toolCrop'), brush: qs('#toolBrush'), text: qs('#toolText'), erase: qs('#toolErase'),
-    reset: qs('#btnReset'), undo: qs('#btnUndo'), redo: qs('#btnRedo'),
     fit: qs('#btnFit'), zin: qs('#btnZoomIn'), zout: qs('#btnZoomOut'),
-    export: qs('#btnExport'), rotateL: qs('#rotateL'), rotateR: qs('#rotateR'), flipH: qs('#flipH'), flipV: qs('#flipV'),
-    exportNow: qs('#exportNow'), exportFull: qs('#exportFull'),
+    export: qs('#btnExport'), exportNow: qs('#exportNow'), exportFull: qs('#exportFull'),
+    rotateL: qs('#rotateL'), rotateR: qs('#rotateR'), resetAll: qs('#resetAll'),
     applyCrop: qs('#applyCrop'), cancelCrop: qs('#cancelCrop'),
     clearPaint: qs('#clearPaint'), addLabel: qs('#addLabel'),
-  },
-  fmt: qs('#fmt'), quality: qs('#quality'), presets: qs('#presets'),
-  togglePaint: qs('#togglePaint'), toggleText: qs('#toggleText')
+    snapshot: qs('#snapshot'), revert: qs('#revert'), clearHistory: qs('#clearHistory'),
+  }
 };
-
 const ctx = els.preview.getContext('2d',{willReadFrequently:true});
 const paintCtx = els.paint.getContext('2d',{willReadFrequently:true});
 const cropCtx = els.cropHud.getContext('2d');
 
-/* ======= Build Adjust UI ======= */
-const slidersSpec = [
+/* ===== Build UI: grouped sliders (Light/Color/Detail) ===== */
+const LIGHT = [
   {key:'exposure',min:-2,max:2,step:0.01,label:'Exposure (EV)'},
   {key:'contrast',min:-1,max:1,step:0.01,label:'Contrast'},
   {key:'highlights',min:-1,max:1,step:0.01,label:'Highlights'},
   {key:'shadows',min:-1,max:1,step:0.01,label:'Shadows'},
   {key:'whites',min:-1,max:1,step:0.01,label:'Whites'},
   {key:'blacks',min:-1,max:1,step:0.01,label:'Blacks'},
+  {key:'gamma',min:0.5,max:2,step:0.01,label:'Gamma'},
+  {key:'vignette',min:0,max:1,step:0.01,label:'Vignette'},
+];
+const COLOR = [
   {key:'temperature',min:-1,max:1,step:0.01,label:'Temperature (Blue↔Warm)'},
   {key:'tint',min:-1,max:1,step:0.01,label:'Tint (Green↔Magenta)'},
   {key:'vibrance',min:0,max:1.5,step:0.01,label:'Vibrance'},
   {key:'saturation',min:0,max:2,step:0.01,label:'Saturation'},
+];
+const DETAIL = [
   {key:'clarity',min:-1,max:1,step:0.01,label:'Clarity'},
   {key:'sharpness',min:0,max:2,step:0.01,label:'Sharpen'},
-  {key:'gamma',min:0.5,max:2,step:0.01,label:'Gamma'},
-  {key:'vignette',min:0,max:1,step:0.01,label:'Vignette'},
 ];
-function buildAdjustUI(){
-  const sec = qs('#adjustSection'); sec.innerHTML='';
-  slidersSpec.forEach(sp=>{
+
+function buildSliders(sectionId, spec){
+  const sec = qs(sectionId); sec.innerHTML='';
+  spec.forEach(sp=>{
     const row=document.createElement('div'); row.className='row';
     const label=document.createElement('div'); label.className='label'; label.textContent=sp.label;
     const input=document.createElement('input'); input.type='range'; input.className='range';
     input.min=sp.min; input.max=sp.max; input.step=sp.step; input.value=S.params[sp.key]; input.dataset.key=sp.key;
-    const val=document.createElement('div'); val.className='val'; val.innerHTML=`<span id="val-${sp.key}">${S.params[sp.key].toFixed(2)}</span>`;
+    const val=document.createElement('div'); val.className='val'; val.innerHTML=`<span id="val-${sp.key}">${fmt2(S.params[sp.key])}</span>`;
     const wrap=document.createElement('div'); wrap.appendChild(input);
     row.appendChild(label); row.appendChild(wrap); row.appendChild(val); sec.appendChild(row);
-    input.addEventListener('input',()=>{ const k=input.dataset.key; S.params[k]=Number(input.value); qs(`#val-${k}`).textContent=S.params[k].toFixed(2); markDirty(); });
+    // interactions
+    input.addEventListener('input',()=>{ const k=input.dataset.key; S.params[k]=Number(input.value); qs(`#val-${k}`).textContent=fmt2(S.params[k]); markDirty(); });
     input.addEventListener('change',()=>pushHistory());
+    input.addEventListener('dblclick',()=>{ // reset this slider
+      S.params[input.dataset.key] = DEFAULT_PARAMS[input.dataset.key];
+      input.value = S.params[input.dataset.key];
+      qs(`#val-${input.dataset.key}`).textContent = fmt2(S.params[input.dataset.key]);
+      markDirty(); pushHistory();
+    });
   });
 }
-function refreshAdjustUIValues(){
-  slidersSpec.forEach(sp=>{
-    const input=qs(`input[data-key="${sp.key}"]`); if(input) input.value=S.params[sp.key];
-    const v=qs(`#val-${sp.key}`); if(v) v.textContent=S.params[sp.key].toFixed(2);
-  });
-}
+buildSliders('#lightSection', LIGHT);
+buildSliders('#colorSection', COLOR);
+buildSliders('#detailSection', DETAIL);
 
-/* ======= OPEN / IMPORT (robust + RAW) ======= */
+/* ===== Import: Click / DragDrop / Paste with RAW (CR2/NEF/ARW/DNG…) ===== */
 els.open.addEventListener('click', ()=> els.file.click());
 els.file.addEventListener('change', ev=>{
-  const f = ev.target.files?.[0];
-  if (f) loadFile(f);
-  ev.target.value=''; // allow re-selecting same file
+  const f = ev.target.files?.[0]; if (f) loadFile(f); ev.target.value='';
 });
-
-// Drag & drop
 ['dragenter','dragover'].forEach(evName=>{
   els.viewer.addEventListener(evName, e=>{ e.preventDefault(); e.stopPropagation(); els.drop.classList.add('show'); });
 });
@@ -313,43 +406,56 @@ els.file.addEventListener('change', ev=>{
   els.viewer.addEventListener(evName, e=>{ e.preventDefault(); e.stopPropagation(); els.drop.classList.remove('show'); });
 });
 els.viewer.addEventListener('drop', e=>{
-  const dt=e.dataTransfer;
-  if (dt?.files?.length) loadFile(dt.files[0]);
+  const dt=e.dataTransfer; if (dt?.files?.length) loadFile(dt.files[0]);
 });
-
-// Paste
-els.paste.addEventListener('click', ()=> setHUD('Press Ctrl/Cmd+V in the window after copying an image.'));
+els.paste.addEventListener('click', ()=> setHUD('Press Ctrl/Cmd+V after copying an image.'));
 window.addEventListener('paste', (e)=>{
   const items = e.clipboardData?.items || [];
   for (const it of items){
-    if (it.type.startsWith('image/')) {
-      const blob = it.getAsFile();
-      if (blob) loadFile(blob);
-      return;
-    }
+    if (it.type.startsWith('image/')){ const blob = it.getAsFile(); if (blob) loadFile(blob); return; }
   }
   setHUD('No image found on clipboard');
 });
-
-// Demo
 els.demo.addEventListener('click', ()=> loadDemoImage());
+
+/* ===== Robust RAW loader =====
+   1) If file is TIFF-family RAW (CR2/NEF/ARW/ORF/RW2/DNG/…): parse IFDs
+      - Use tags 0x0201/0x0202 (JPEGInterchangeFormat/Length)
+      - Also DNG Preview tags 0xC6F0/0xC6F1 (PreviewImageStart/Length)
+      - Consider SubIFDs (0x014A) and Exif IFD pointer (0x8769)
+      Pick the largest valid JPEG range.
+   2) Else: fallback to scanning for SOI/EOI JPEG blocks and pick largest.
+*/
+const RAW_EXTS = ['cr2','cr3','nef','arw','raf','dng','orf','rw2','pef','srw','kdc','mrw','erf'];
+function extOf(name=''){ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():''; }
+function isRawFile(file){ const ext = extOf(file.name); return RAW_EXTS.includes(ext); }
 
 async function loadFile(file){
   try{
-    if (isRawFile(file)) {
-      setHUD('Reading RAW… extracting embedded preview…');
-      const jpegBlob = await loadRawAsJPEG(file);
-      if (!jpegBlob) {
-        setHUD('This RAW has no embedded JPEG (or it’s unreadable). For true RAW develop (WASM/LibRaw), say the word and I’ll add it.');
+    if (isRawFile(file)){
+      const ext = extOf(file.name);
+      setHUD(`Reading ${ext.toUpperCase()}… looking for embedded preview`);
+      const buf = await file.arrayBuffer();
+      let jpegBuf = null;
+
+      // CR2/NEF/ARW/DNG/… (TIFF-based)
+      if (isTIFF(buf)) {
+        jpegBuf = parseTIFFForPreview(buf);
+      }
+      // CR3 (ISOBMFF) & RAF/etc. — fallback scan often works
+      if (!jpegBuf) jpegBuf = findLargestJPEG(buf);
+
+      if (!jpegBuf){
+        setHUD('No embedded JPEG preview found (or unreadable). For true RAW development (WASM), I can add LibRaw.');
         return;
       }
-      await loadFromBlob(jpegBlob, `${getExt(file.name).toUpperCase()} preview`);
+      await loadFromBlob(new Blob([jpegBuf], {type:'image/jpeg'}), `${ext.toUpperCase()} preview`);
       return;
     }
+    // Normal images
     await loadFromBlob(file);
-  } catch(err){
-    console.error(err);
-    setHUD('Failed to load image');
+  }catch(e){
+    console.error(e); setHUD('Failed to load image');
   }
 }
 
@@ -364,14 +470,14 @@ async function loadFromBlob(blob, label){
   };
   img.onerror = async ()=>{
     URL.revokeObjectURL(url);
-    // Try WebCodecs if supported
+    // Try WebCodecs if available
     if (window.ImageDecoder && blob.type && await ImageDecoder.isTypeSupported(blob.type).catch(()=>false)) {
       try{
         const dec = new ImageDecoder({data: blob, type: blob.type});
         const {image} = await dec.decode();
         const c = document.createElement('canvas'); c.width=image.codedWidth; c.height=image.codedHeight;
-        const g = c.getContext('2d'); g.drawImage(image,0,0);
-        const fallback = await new Promise(res=> c.toBlob(res,'image/png',0.95));
+        c.getContext('2d').drawImage(image,0,0);
+        const fallback = await new Promise(res=> c.toBlob(res,'image/png',0.98));
         if (fallback) return loadFromBlob(fallback, 'decoded');
       }catch(e){}
     }
@@ -382,52 +488,169 @@ async function loadFromBlob(blob, label){
 
 async function setBitmapFromImage(img){
   S.img = img; S.origW = img.naturalWidth; S.origH = img.naturalHeight;
-  if('createImageBitmap' in window){
-    try{ S.imgBitmap = await createImageBitmap(img); }
-    catch(e){ S.imgBitmap = img; }
-  }else{
-    S.imgBitmap = img;
-  }
+  if ('createImageBitmap' in window){
+    try{ S.imgBitmap = await createImageBitmap(img); } catch { S.imgBitmap = img; }
+  } else { S.imgBitmap = img; }
 }
 
 function afterImageLoaded(){
-  // ensure color (no B&W): keep saturation at 1
-  S.params = {...S.params, saturation: S.params.saturation || 1};
+  S.params = {...S.params, saturation: (S.params.saturation==null?1:S.params.saturation)};
   resetView(); initCropDefault(); resizeCanvases(); clearPaintLayer();
-  S.labels=[]; refreshTextList(); refreshAdjustUIValues();
+  S.labels = []; refreshTextList();
+  refreshAllSliderValues();
   S.history=[]; S.historyIdx=-1; pushHistory(true); markDirty();
 }
 
-/* ======= RAW helpers ======= */
-function isRawFile(file){
-  const t = (file.type||'').toLowerCase();
-  const ext = getExt(file.name);
-  const rawExts = ['cr2','cr3','nef','arw','raf','dng','orf','rw2','pef','srw','kdc','mrw','erf'];
-  return ext ? rawExts.includes(ext) : (!t.startsWith('image/') && !!file.name);
+/* ===== TIFF/CR2 parser: find embedded JPEG preview ===== */
+function isTIFF(ab){
+  const u = new Uint8Array(ab,0,4);
+  const ii = (u[0]===0x49&&u[1]===0x49&&u[2]===0x2A&&u[3]===0x00);
+  const mm = (u[0]===0x4D&&u[1]===0x4D&&u[2]===0x00&&u[3]===0x2A);
+  // CR2: 'II*\0' + 'CR' later; DNG also TIFF
+  return ii || mm;
 }
-function getExt(name=''){ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():''; }
+function parseTIFFForPreview(ab){
+  const u = new DataView(ab);
+  const byteOrder = u.getUint16(0,false);
+  const little = (byteOrder===0x4949); // 'II'
+  const big = (byteOrder===0x4D4D);    // 'MM'
+  if (!little && !big) return null;
+  const le = little; // boolean
 
-async function loadRawAsJPEG(file){
-  const buf = await file.arrayBuffer();
-  const jpeg = findLargestJPEG(buf);
-  if (!jpeg) return null;
-  return new Blob([jpeg], { type:'image/jpeg' });
+  const get16=(o)=>u.getUint16(o,le);
+  const get32=(o)=>u.getUint32(o,le);
+
+  const firstIFD = get32(4);
+  const visited = new Set();
+  const stack = [firstIFD];
+  let best = null;
+
+  function readValue(tagType, count, valOff){
+    const sizeOf = (t)=> t===1||t===2||t===6||t===7 ? 1 : t===3 ? 2 : 4; // BYTE/ASCII/SBYTE/UNDEFINED=1, SHORT=2, LONG/RATIONAL=4 (we only need LONG)
+    const total = sizeOf(tagType) * count;
+    if (total <= 4) {
+      // value is packed into valOff
+      if (tagType===4) return [valOff>>>0]; // LONG
+      if (tagType===3) return [valOff & 0xFFFF]; // SHORT
+      return [valOff>>>0];
+    } else {
+      // points to data
+      const base = valOff>>>0;
+      const arr = [];
+      if (tagType===4){ for(let i=0;i<count;i++) arr.push(get32(base+i*4)); }
+      else if (tagType===3){ for(let i=0;i<count;i++) arr.push(get16(base+i*2)); }
+      else { /* ignore other types */ }
+      return arr;
+    }
+  }
+
+  function scanIFD(ifdOff){
+    if (ifdOff===0 || visited.has(ifdOff)) return;
+    if (ifdOff+2 > u.byteLength) return;
+    visited.add(ifdOff);
+    const num = get16(ifdOff);
+    const base = ifdOff + 2;
+    let nextIFD = 0;
+    let candidates = [];
+
+    // Collect offsets to other IFDs we should visit too
+    const toVisit = [];
+
+    for (let i=0;i<num;i++){
+      const e = base + i*12;
+      if (e+12 > u.byteLength) break;
+      const tag = get16(e);
+      const type = get16(e+2);
+      const count= get32(e+4);
+      const val  = get32(e+8);
+
+      // SubIFDs (0x014A) -> LONG array of IFD offsets
+      if (tag===0x014A){ const offs = readValue(type,count,val); offs.forEach(o=>{ if(o) toVisit.push(o); }); }
+
+      // Exif IFD Pointer (0x8769)
+      if (tag===0x8769){ toVisit.push(val); }
+
+      // DNG PreviewImageStart (0xC6F0) + PreviewImageLength (0xC6F1)
+      if (tag===0xC6F0 || tag===0xC6F1){
+        candidates.push({kind:'dng', tag, val, type, count});
+      }
+
+      // JPEGInterchangeFormat / Length (0x0201 / 0x0202)
+      if (tag===0x0201 || tag===0x0202){
+        candidates.push({kind:'jfif', tag, val, type, count});
+      }
+    }
+
+    // Capture next-IFD link
+    nextIFD = get32(base + num*12);
+    if (nextIFD) toVisit.push(nextIFD);
+
+    // Resolve candidates into (offset,length) and pick largest valid
+    let dngStart=null, dngLen=null, jfifOff=null, jfifLen=null;
+
+    for (const c of candidates){
+      if (c.kind==='dng'){
+        if (c.tag===0xC6F0) dngStart = readValue(c.type,c.count,c.val)[0];
+        if (c.tag===0xC6F1) dngLen   = readValue(c.type,c.count,c.val)[0];
+      } else if (c.kind==='jfif'){
+        if (c.tag===0x0201) jfifOff = readValue(c.type,c.count,c.val)[0];
+        if (c.tag===0x0202) jfifLen = readValue(c.type,c.count,c.val)[0];
+      }
+    }
+
+    const addCandidate=(off,len)=>{
+      if (!off || !len) return;
+      if (off+len > u.byteLength) return;
+      const size=len;
+      if (!best || size>best.size) best = {off,len,size};
+    };
+    addCandidate(dngStart,dngLen);
+    addCandidate(jfifOff,jfifLen);
+
+    // Visit linked IFDs
+    toVisit.forEach(o=> scanIFD(o));
+  }
+
+  scanIFD(firstIFD);
+  if (best){
+    // Validate it looks like a JPEG (FFD8 ... FFD9)
+    const a = new Uint8Array(ab, best.off, best.len);
+    if (a[0]===0xFF && a[1]===0xD8) return ab.slice(best.off, best.off+best.len);
+    // Sometimes length overshoots; clamp to first EOI
+    const idx = findEOI(a);
+    if (idx>2) return ab.slice(best.off, best.off+idx);
+  }
+  return null;
 }
+
+function findEOI(u8){
+  for(let i=u8.length-2;i>=2;i--){ if (u8[i]===0xFF && u8[i+1]===0xD9) return i+2; }
+  return -1;
+}
+
+/* Fallback: scan for largest SOI/EOI JPEG block in the whole file */
 function findLargestJPEG(buf){
-  const u=new Uint8Array(buf); let i=0, best=null; const n=u.length;
-  while(i<n-1){
-    if(u[i]===0xFF && u[i+1]===0xD8){
-      const start=i; let j=i+2, end=-1;
-      while(j<n-1){ if(u[j]===0xFF && u[j+1]===0xD9){ end=j+2; break; } j++; }
-      if(end>0){ const size=end-start; if(!best || size>best.size) best={start,end,size}; i=end; continue; }
-      else break;
+  const u = new Uint8Array(buf);
+  let i=0, best=null;
+  while (i<u.length-1){
+    if (u[i]===0xFF && u[i+1]===0xD8){
+      let start=i; let j=i+2; let end=-1;
+      while (j<u.length-1){
+        if (u[j]===0xFF && u[j+1]===0xD9){ end=j+2; break; }
+        j++;
+      }
+      if (end>0){
+        const size=end-start;
+        if (!best || size>best.size) best={start,end,size};
+        i=end; continue;
+      } else break;
     }
     i++;
   }
-  return best ? buf.slice(best.start, best.end) : null;
+  return best ? buf.slice(best.start,best.end) : null;
 }
 
-/* ======= View / Canvas sizing ======= */
+/* ===== Viewer sizing & zoom ===== */
 function resizeCanvases(){
   const rect=els.viewer.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
   [els.preview,els.paint,els.cropHud].forEach(c=>{
@@ -452,20 +675,29 @@ function fitToScreen(){
 }
 function updateZoomBadge(){ els.zoomLabel.textContent=Math.round(S.zoom*100)+'%'; }
 
-/* ======= Interactions ======= */
 function pointerPos(ev, el){
   const r=el.getBoundingClientRect(); const t=(ev.touches&&ev.touches[0])||ev.changedTouches?.[0]||ev;
   return {x:t.clientX-r.left, y:t.clientY-r.top};
 }
 els.viewer.addEventListener('wheel', (e)=>{
   e.preventDefault(); if(!S.imgBitmap) return;
-  const delta=-Math.sign(e.deltaY)*0.1; const prev=S.zoom;
+  const delta=-Math.sign(e.deltaY)*0.12; const prev=S.zoom;
   S.zoom=clamp(S.zoom*(1+delta), S.minZoom,S.maxZoom);
   const rect=els.viewer.getBoundingClientRect(); const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
   const sx=(cx-S.viewX)/prev, sy=(cy-S.viewY)/prev;
   S.viewX=cx - sx*S.zoom; S.viewY=cy - sy*S.zoom; updateZoomBadge(); markDirty();
 },{passive:false});
+els.viewer.addEventListener('dblclick', ()=>{
+  if (!S.imgBitmap) return;
+  if (Math.abs(S.zoom-1)<0.01) fitToScreen(); else { // toggle 100%
+    const rect=els.viewer.getBoundingClientRect();
+    let iw=S.origW, ih=S.origH; if(S.rot%180!==0) [iw,ih]=[ih,iw];
+    S.zoom=1; S.viewX=(rect.width - iw*S.zoom)/2; S.viewY=(rect.height - ih*S.zoom)/2;
+    updateZoomBadge(); markDirty();
+  }
+});
 
+/* Drag to pan / draw / crop / text */
 ['mousedown','touchstart'].forEach(type=>{
   els.viewer.addEventListener(type,(ev)=>{
     const p=pointerPos(ev,els.viewer);
@@ -493,51 +725,49 @@ els.viewer.addEventListener('wheel', (e)=>{
   });
 });
 
-/* ======= Tool selection & buttons ======= */
+/* ===== Tool switching & top buttons ===== */
 function setTool(tool){
   S.tool=tool;
-  for(const [k,btn] of Object.entries({move:els.buttons.move,crop:els.buttons.crop,brush:els.buttons.brush,text:els.buttons.text,erase:els.buttons.erase}))
+  for (const [k,btn] of Object.entries({move:els.buttons.move,crop:els.buttons.crop,brush:els.buttons.brush,text:els.buttons.text,erase:els.buttons.erase})){
     btn.setAttribute('aria-pressed', k===tool?'true':'false');
-  if(tool==='crop'){ S.crop.active=true; drawCropHUD(); setHUD('Crop: drag handles, then Apply.'); }
-  else{ S.crop.dragging=false; drawCropHUD(); }
+  }
+  if (tool==='crop'){ S.crop.active=true; drawCropHUD(); setHUD('Crop: drag handles, then Apply.'); }
+  else { S.crop.dragging=false; drawCropHUD(); }
 }
 els.buttons.move.onclick=()=>setTool('move');
 els.buttons.crop.onclick=()=>setTool('crop');
 els.buttons.brush.onclick=()=>setTool('brush');
 els.buttons.erase.onclick=()=>setTool('erase');
 els.buttons.text.onclick=()=>setTool('text');
-
 els.buttons.fit.onclick=()=>fitToScreen();
-els.buttons.zin.onclick=()=>{ S.zoom=clamp(S.zoom*1.2,S.minZoom,S.maxZoom); updateZoomBadge(); markDirty(); }
-els.buttons.zout.onclick=()=>{ S.zoom=clamp(S.zoom/1.2,S.minZoom,S.maxZoom); updateZoomBadge(); markDirty(); }
-
+els.buttons.zin.onclick=()=>{ S.zoom=clamp(S.zoom*1.18,S.minZoom,S.maxZoom); updateZoomBadge(); markDirty(); }
+els.buttons.zout.onclick=()=>{ S.zoom=clamp(S.zoom/1.18,S.minZoom,S.maxZoom); updateZoomBadge(); markDirty(); }
+els.buttons.export.onclick=()=>doExport(false);
+els.buttons.exportNow.onclick=()=>doExport(false);
+els.buttons.exportFull.onclick=()=>doExport(true);
 els.buttons.rotateL.onclick=()=>{ S.rot=(S.rot-90+360)%360; markDirty(); pushHistory(); }
 els.buttons.rotateR.onclick=()=>{ S.rot=(S.rot+90)%360; markDirty(); pushHistory(); }
-els.buttons.flipH.onclick=()=>{ S.flipH=!S.flipH; markDirty(); pushHistory(); }
-els.buttons.flipV.onclick=()=>{ S.flipV=!S.flipV; markDirty(); pushHistory(); }
-
-els.buttons.reset.onclick=()=>{
+els.buttons.resetAll.onclick=()=>{
   if(!S.imgBitmap) return;
-  S.params={exposure:0,contrast:0,highlights:0,shadows:0,whites:0,blacks:0,temperature:0,tint:0,vibrance:0,saturation:1,clarity:0,sharpness:0,gamma:1,vignette:0};
-  S.rot=0; S.flipH=false; S.flipV=false;
-  resetView(); initCropDefault(); clearPaintLayer(); S.labels=[]; refreshTextList(); refreshAdjustUIValues(); markDirty(); pushHistory();
+  S.params={...DEFAULT_PARAMS}; S.rot=0; S.flipH=false; S.flipV=false;
+  resetView(); initCropDefault(); clearPaintLayer(); S.labels=[]; refreshTextList(); refreshAllSliderValues(); markDirty(); pushHistory();
 };
 
+/* Keyboard */
 window.addEventListener('keydown',(e)=>{
   if(e.key==='v'||e.key==='V') setTool('move');
   else if(e.key==='c'||e.key==='C') setTool('crop');
   else if(e.key==='b'||e.key==='B') setTool('brush');
   else if(e.key==='e'||e.key==='E') setTool('erase');
   else if(e.key==='t'||e.key==='T') setTool('text');
-  else if(e.key==='r'||e.key==='R') els.buttons.reset.click();
   else if(e.key==='f'||e.key==='F') els.buttons.fit.click();
-  else if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.shiftKey){ e.preventDefault(); els.buttons.undo.click(); }
-  else if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && e.shiftKey){ e.preventDefault(); els.buttons.redo.click(); }
+  else if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.shiftKey){ e.preventDefault(); undo(); }
+  else if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && e.shiftKey){ e.preventDefault(); redo(); }
   else if(e.key==='+'||e.key==='='){ els.buttons.zin.click(); }
   else if(e.key==='-'||e.key==='_'){ els.buttons.zout.click(); }
 });
 
-/* ======= HUD & History ======= */
+/* ===== HUD & History ===== */
 function setHUD(t){ els.hudText.textContent=t; }
 function snapshotState(){
   return JSON.stringify({params:S.params,rot:S.rot,flipH:S.flipH,flipV:S.flipV,
@@ -547,15 +777,20 @@ function restoreState(json){
   const obj=JSON.parse(json);
   Object.assign(S.params, obj.params||{}); S.rot=obj.rot||0; S.flipH=!!obj.flipH; S.flipV=!!obj.flipV;
   S.crop=obj.crop||{active:false,x:0,y:0,w:0,h:0,ratio:'free'}; S.labels=obj.labels||[];
-  loadPaintFromDataURL(obj.paint); refreshTextList(); refreshAdjustUIValues(); markDirty();
+  loadPaintFromDataURL(obj.paint); refreshTextList(); refreshAllSliderValues(); markDirty();
 }
 function pushHistory(initial=false){
   if(!S.imgBitmap) return;
-  const snap=snapshotState();
-  if(S.historyIdx < S.history.length-1) S.history=S.history.slice(0,S.historyIdx+1);
-  S.history.push(snap); S.historyIdx=S.history.length-1; renderHistoryList();
-  if(!initial) setHUD('Edit recorded');
+  if (S.historyIdx < S.history.length-1) S.history = S.history.slice(0,S.historyIdx+1);
+  S.history.push(snapshotState()); S.historyIdx=S.history.length-1; renderHistoryList();
+  if(!initial) setHUD('Edit saved');
 }
+function undo(){ if(S.historyIdx>0){ S.historyIdx--; restoreState(S.history[S.historyIdx]); renderHistoryList(); setHUD('Undid'); } }
+function redo(){ if(S.historyIdx<S.history.length-1){ S.historyIdx++; restoreState(S.history[S.historyIdx]); renderHistoryList(); setHUD('Redid'); } }
+els.buttons.snapshot.onclick=()=>pushHistory();
+els.buttons.revert.onclick=()=>{ if(!S.history.length) return; S.historyIdx=0; restoreState(S.history[0]); renderHistoryList(); setHUD('Reverted'); };
+els.buttons.clearHistory.onclick=()=>{ S.history=[]; S.historyIdx=-1; renderHistoryList(); setHUD('History cleared'); };
+
 function renderHistoryList(){
   if(!S.history.length){ els.history.textContent='No edits yet.'; return; }
   els.history.innerHTML='';
@@ -565,26 +800,33 @@ function renderHistoryList(){
     els.history.appendChild(b);
   });
 }
-els.snapshot.onclick=()=>pushHistory();
-els.revert.onclick=()=>{ if(!S.history.length) return; S.historyIdx=0; restoreState(S.history[0]); renderHistoryList(); setHUD('Reverted to original'); };
-els.clearHistory.onclick=()=>{ S.history=[]; S.historyIdx=-1; renderHistoryList(); setHUD('History cleared'); };
 
-/* ======= Presets ======= */
+/* ===== Presets & Quick actions ===== */
 const presetMap = {
   auto:p=>({...p,exposure:p.exposure+0.2,contrast:p.contrast+0.15,highlights:-0.15,shadows:0.2,whites:0.05,blacks:-0.05,vibrance:0.25,sharpness:0.2}),
-  bw:p=>({...p,saturation:0,vibrance:0,contrast:p.contrast+0.25,clarity:p.clarity+0.15,gamma:1.0}),
-  vivid:p=>({...p,vibrance:0.6,saturation:1.25,contrast:p.contrast+0.2,clarity:p.clarity+0.15}),
+  vivid:p=>({...p,vibrance:0.55,saturation:1.2,contrast:p.contrast+0.18,clarity:p.clarity+0.12}),
   warm:p=>({...p,temperature:0.35,tint:0.05,vibrance:0.2}),
   cool:p=>({...p,temperature:-0.25,tint:-0.05,vibrance:0.2}),
-  cinematic:p=>({...p,contrast:p.contrast+0.25,highlights:-0.2,shadows:0.2,saturation:0.9,vibrance:0.3,gamma:0.95,vignette:0.25}),
-  matte:p=>({...p,blacks:0.15,contrast:p.contrast-0.05,gamma:1.05,saturation:0.9})
+  cinematic:p=>({...p,contrast:p.contrast+0.25,highlights:-0.2,shadows:0.18,saturation:0.9,vibrance:0.3,gamma:0.96,vignette:0.25}),
+  matte:p=>({...p,blacks:0.15,contrast:p.contrast-0.05,gamma:1.05,saturation:0.92}),
+  bw:p=>({...p,saturation:0,vibrance:0,contrast:p.contrast+0.22,clarity:p.clarity+0.12}),
 };
 els.presets.addEventListener('click',(e)=>{
   const chip=e.target.closest('.chip'); if(!chip) return; if(!S.imgBitmap){ setHUD('Open a photo first'); return; }
-  S.params=presetMap[chip.dataset.preset](S.params); refreshAdjustUIValues(); markDirty(); pushHistory(); setHUD(`Applied preset: ${chip.dataset.preset}`);
+  S.params=presetMap[chip.dataset.preset](S.params); refreshAllSliderValues(); markDirty(); pushHistory(); setHUD(`Preset: ${chip.dataset.preset}`);
 });
+els.quick.auto.onclick = ()=>{ if(!S.imgBitmap) return setHUD('Open a photo first'); S.params=presetMap.auto(S.params); refreshAllSliderValues(); markDirty(); pushHistory(); };
+els.quick.vivid.onclick=()=>{ if(!S.imgBitmap) return setHUD('Open a photo first'); S.params=presetMap.vivid(S.params); refreshAllSliderValues(); markDirty(); pushHistory(); };
+els.quick.bw.onclick   =()=>{ if(!S.imgBitmap) return setHUD('Open a photo first'); S.params=presetMap.bw(S.params);    refreshAllSliderValues(); markDirty(); pushHistory(); };
 
-/* ======= Crop ======= */
+function refreshAllSliderValues(){
+  [...document.querySelectorAll('input.range')].forEach(i=>{
+    const k=i.dataset.key; i.value=S.params[k];
+    const lab=qs(`#val-${k}`); if(lab) lab.textContent=fmt2(S.params[k]);
+  });
+}
+
+/* ===== Crop ===== */
 function initCropDefault(){
   const r=imageRectOnScreen(); if(!r) return;
   const m=.1; S.crop={active:false,x:r.x+r.w*m,y:r.y+r.h*m,w:r.w*(1-2*m),h:r.h*(1-2*m),ratio:'free',dragging:false,handle:null,start:{}};
@@ -604,7 +846,7 @@ function drawCropHUD(){
   g.strokeStyle='rgba(168,213,255,.6)'; g.lineWidth=1;
   for(let i=1;i<=2;i++){ g.beginPath(); g.moveTo(r.x+r.w*i/3,r.y); g.lineTo(r.x+r.w*i/3,r.y+r.h); g.stroke();
     g.beginPath(); g.moveTo(r.x, r.y+r.h*i/3); g.lineTo(r.x+r.w,r.y+r.h*i/3); g.stroke(); }
-  const s=10, hs=[
+  const s=12, hs=[
     {name:'nw',x:r.x-s/2,y:r.y-s/2},{name:'n',x:r.x+r.w/2-s/2,y:r.y-s/2},{name:'ne',x:r.x+r.w-s/2,y:r.y-s/2},
     {name:'e',x:r.x+r.w-s/2,y:r.y+r.h/2-s/2},{name:'se',x:r.x+r.w-s/2,y:r.y+r.h-s/2},
     {name:'s',x:r.x+r.w/2-s/2,y:r.y+r.h-s/2},{name:'sw',x:r.x-s/2,y:r.y+r.h-s/2},{name:'w',x:r.x-s/2,y:r.y+r.h/2-s/2}
@@ -614,7 +856,7 @@ function drawCropHUD(){
   g.restore();
 }
 function cropHandles(){
-  const s=10, r=S.crop; return [
+  const s=12, r=S.crop; return [
     {name:'nw',x:r.x-s/2,y:r.y-s/2,s},{name:'n',x:r.x+r.w/2-s/2,y:r.y-s/2,s},{name:'ne',x:r.x+r.w-s/2,y:r.y-s/2,s},
     {name:'e',x:r.x+r.w-s/2,y:r.y+r.h/2-s/2,s},{name:'se',x:r.x+r.w-s/2,y:r.y+r.h-s/2,s},
     {name:'s',x:r.x+r.w/2-s/2,y:r.y+r.h-s/2,s},{name:'sw',x:r.x-s/2,y:r.y+r.h-s/2,s},{name:'w',x:r.x-s/2,y:r.y+r.h/2-s/2,s}
@@ -637,7 +879,7 @@ function cropPointerMove(p){
   drawCropHUD();
 }
 function cropPointerUp(){ S.crop.dragging=false; pushHistory(); }
-qs('#rightPanel').addEventListener('click',(e)=>{
+qs('.panel[aria-label="Adjustments and Export"]').addEventListener('click',(e)=>{
   const b=e.target.closest('.btn'); if(!b) return; const r=b.dataset.ratio; if(!r) return;
   S.crop.ratio=r;
   if(S.crop.active&&r!=='free'){
@@ -657,14 +899,14 @@ els.buttons.applyCrop.onclick=()=>{
 };
 els.buttons.cancelCrop.onclick=()=>{ S.crop.active=false; drawCropHUD(); setTool('move'); };
 
-/* ======= Paint / Brush ======= */
+/* ===== Brush / Paint ===== */
 function clearPaintLayer(){ paintCtx.clearRect(0,0,els.paint.width,els.paint.height); drawPaintLayer(); }
 els.buttons.clearPaint.onclick=()=>{ clearPaintLayer(); pushHistory(); };
 let stroke={active:false,last:null};
 function startStroke(p){ if(!S.imgBitmap){ setHUD('Open a photo first'); return; } stroke.active=true; stroke.last=p; drawBrushDot(p,true); }
 function continueStroke(p){ drawBrushLine(stroke.last,p); stroke.last=p; }
 function endStroke(){ stroke.active=false; pushHistory(); }
-function drawBrushDot(p, first=false){
+function drawBrushDot(p){
   const g=paintCtx, size=S.brush.size;
   g.save(); g.globalAlpha=S.brush.opacity; g.globalCompositeOperation=(S.tool==='erase')?'destination-out':'source-over';
   g.beginPath(); g.arc(p.x,p.y,size/2,0,Math.PI*2);
@@ -680,7 +922,7 @@ function drawBrushLine(a,b){
 }
 function drawPaintLayer(){}
 
-/* ======= Text Labels ======= */
+/* ===== Text labels ===== */
 let draggingLabel=null;
 function createOrSelectLabel(p){
   const hit=S.labels.findLast(l=>{ const w=l.size*l.text.length*0.6, h=l.size*1.2; return p.x>=l.x&&p.x<=l.x+w&&p.y>=l.y-h&&p.y<=l.y; });
@@ -696,10 +938,10 @@ function refreshTextList(){
   S.labels.forEach(l=>{
     const row=document.createElement('div'); row.className='layer-row';
     row.innerHTML=`<div class="thumb"></div>
-      <input value="${l.text}" style="flex:1;background:#0b121c;color:#e6edf7;border:1px solid #1e2a3a;border-radius:6px;padding:4px 6px" />
+      <input value="${l.text}" style="flex:1;background:#0b121c;color:#e6edf7;border:1px solid #1e2a3a;border-radius:6px;padding:6px 8px" />
       <input type="color" value="${l.fill}" />
-      <input type="range" min="10" max="120" step="1" value="${l.size}" />
-      <input type="range" min="0.1" max="1" step="0.01" value="${l.opacity}" />
+      <input type="range" min="10" max="120" step="1" value="${l.size}" class="range" />
+      <input type="range" min="0.1" max="1" step="0.01" value="${l.opacity}" class="range" />
       <button class="btn small danger">Delete</button>`;
     const [txt,color,size,op,del]=row.querySelectorAll('input,button');
     txt.oninput=()=>{ l.text=txt.value; markDirty(); };
@@ -712,16 +954,19 @@ function refreshTextList(){
 }
 function drawLabelsOnScreen(g, labels){
   if(!labels.length||!els.toggleText.checked) return;
-  g.save(); labels.forEach(l=>{ g.globalAlpha=l.opacity; g.fillStyle=l.fill; g.font=`600 ${l.size}px system-ui, Inter, Arial`; g.textBaseline='alphabetic'; g.fillText(l.text,l.x,l.y); }); g.restore();
+  g.save(); labels.forEach(l=>{ g.globalAlpha=l.opacity; g.fillStyle=l.fill; g.font=`600 ${l.size}px Inter, system-ui, Arial`; g.textBaseline='alphabetic'; g.fillText(l.text,l.x,l.y); }); g.restore();
 }
 
-/* ======= Rendering ======= */
+/* ===== Render pipeline ===== */
 function markDirty(){ S.dirty=true; if(!S.rendering){ S.rendering=true; requestAnimationFrame(()=>{ render(); S.rendering=false; }); } }
 function render(){
   S.dirty=false; const g=ctx; const rect=els.viewer.getBoundingClientRect();
   g.clearRect(0,0,rect.width,rect.height);
-  if(!S.imgBitmap){ g.save(); g.fillStyle='#0c1420'; g.fillRect(0,0,rect.width,rect.height);
-    g.fillStyle='#8aa9c9'; g.textAlign='center'; g.font='600 16px system-ui'; g.fillText('Drop an image / click Open / Paste', rect.width/2, rect.height/2); g.restore(); return; }
+  if(!S.imgBitmap){
+    g.save(); g.fillStyle='#0c1420'; g.fillRect(0,0,rect.width,rect.height);
+    g.fillStyle='#9fb7d6'; g.textAlign='center'; g.font='600 16px Inter, system-ui'; g.fillText('Drop an image / click Import / Paste', rect.width/2, rect.height/2); g.restore();
+    return;
+  }
   g.save(); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
   g.translate(S.viewX,S.viewY); g.scale(S.zoom,S.zoom); applyImageTransforms(g,0,0); drawWithPipeline(g,S.imgBitmap,S.params,false,S.labels); g.restore();
   drawLabelsOnScreen(ctx,S.labels); drawCropHUD();
@@ -740,14 +985,19 @@ function drawWithPipeline(g, bitmap, p, fullRes=false){
   const off=document.createElement('canvas'); off.width=sw; off.height=sh; const x=off.getContext('2d',{willReadFrequently:true});
   x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; x.drawImage(bitmap,0,0,sw,sh);
   let img=x.getImageData(0,0,sw,sh);
-  img=passBasic(img,p); img=passHighlightsShadows(img,p.highlights,p.shadows); img=passVibranceSaturation(img,p.vibrance,(p.saturation??1));
-  if(Math.abs(p.clarity)>0.001) img=passClarity(img,p.clarity); if(p.sharpness>0.001) img=passSharpen(img,p.sharpness);
+  img=passBasic(img,p); img=passHighlightsShadows(img,p.highlights,p.shadows);
+  img=passVibranceSaturation(img,p.vibrance,(p.saturation??1));
+  if(Math.abs(p.clarity)>0.001) img=passClarity(img,p.clarity);
+  if(p.sharpness>0.001) img=passSharpen(img,p.sharpness);
   x.putImageData(img,0,0); g.drawImage(off,0,0,vw,vh);
-  if(p.vignette>0.001){ const grad=g.createRadialGradient(vw/2,vh/2,Math.min(vw,vh)*0.2,vw/2,vh/2,Math.max(vw,vh)*0.6);
-    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,`rgba(0,0,0,${clamp(p.vignette,0,1)})`); g.fillStyle=grad; g.fillRect(0,0,vw,vh); }
+  if(p.vignette>0.001){
+    const grad=g.createRadialGradient(vw/2,vh/2,Math.min(vw,vh)*0.25,vw/2,vh/2,Math.max(vw,vh)*0.65);
+    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,`rgba(0,0,0,${clamp(p.vignette,0,1)})`);
+    g.fillStyle=grad; g.fillRect(0,0,vw,vh);
+  }
 }
 
-/* ======= Passes ======= */
+/* ===== Passes ===== */
 function passBasic(imageData,p){
   const d=imageData.data,L=d.length; const gain=Math.pow(2,p.exposure||0), c=p.contrast||0, whites=p.whites||0, blacks=p.blacks||0, gamma=p.gamma||1;
   const t=p.temperature||0, ti=p.tint||0; const rMul=1+t*0.3+ti*0.05, gMul=1-ti*0.07, bMul=1-t*0.3-ti*0.05;
@@ -777,7 +1027,7 @@ function rgb2hsl(r,g,b){ const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,
 function hsl2rgb(h,s,l){ if(s===0) return [l,l,l]; const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
   const q=l<.5?l*(1+s):l+s-l*s, p=2*l-q; return [hue2rgb(p,q,h+1/3),hue2rgb(p,q,h),hue2rgb(p,q,h-1/3)]; }
 function passVibranceSaturation(imageData,vibrance,saturation){
-  const sat = (saturation==null?1:saturation); // guard against undefined/0
+  const sat = (saturation==null?1:saturation);
   const d=imageData.data; for(let i=0;i<d.length;i+=4){
     let r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255; let[h,s,l]=rgb2hsl(r,g,b);
     const add=(vibrance||0)*(1-s);
@@ -815,10 +1065,7 @@ function passSharpen(imageData,amount){
   return imageData;
 }
 
-/* ======= Export ======= */
-els.buttons.export.onclick=()=>doExport(false);
-els.buttons.exportNow.onclick=()=>doExport(false);
-els.buttons.exportFull.onclick=()=>doExport(true);
+/* ===== Export ===== */
 function doExport(full){
   if(!S.imgBitmap){ setHUD('Open a photo first'); return; }
   setHUD(full?'Rendering full-res…':'Exporting…');
@@ -827,30 +1074,30 @@ function doExport(full){
   const rect=imageRectOnScreen();
   if(els.toggleText.checked && S.labels.length){
     g.save(); S.labels.forEach(l=>{ const ix=(l.x-rect.x)/S.zoom, iy=(l.y-rect.y)/S.zoom;
-      g.globalAlpha=l.opacity; g.fillStyle=l.fill; g.font=`600 ${Math.round(l.size/S.zoom)}px system-ui, Inter, Arial`; g.textBaseline='alphabetic'; g.fillText(l.text,ix,iy); }); g.restore();
+      g.globalAlpha=l.opacity; g.fillStyle=l.fill; g.font=`600 ${Math.round(l.size/S.zoom)}px Inter, system-ui`; g.textBaseline='alphabetic'; g.fillText(l.text,ix,iy); }); g.restore();
   }
   if(els.togglePaint.checked){
     const temp=document.createElement('canvas'); temp.width=els.paint.width; temp.height=els.paint.height; temp.getContext('2d').drawImage(els.paint,0,0);
     g.save(); g.translate((0-rect.x)/S.zoom,(0-rect.y)/S.zoom); g.scale(1/S.zoom,1/S.zoom); g.drawImage(temp,0,0); g.restore();
   }
   const mime=els.fmt.value, q=Number(els.quality.value);
-  out.toBlob((blob)=>{ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`edited.${mime.split('/')[1]||'png'}`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); setHUD('Exported image'); }, mime, q);
+  out.toBlob((blob)=>{ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`edited.${mime.split('/')[1]||'png'}`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); setHUD('Exported'); }, mime, q);
 }
 function loadPaintFromDataURL(dataURL){
   if(!dataURL){ clearPaintLayer(); return; }
   const img=new Image(); img.onload=()=>{ paintCtx.clearRect(0,0,els.paint.width,els.paint.height); paintCtx.drawImage(img,0,0,els.paint.width,els.paint.height); }; img.src=dataURL;
 }
 
-/* ======= Brush HUD ======= */
+/* ===== Brush HUD (top-right) ===== */
 (function(){
   const box=document.createElement('div');
-  box.style.position='absolute'; box.style.right='10px'; box.style.top='62px'; box.style.background='#0c1420cc';
-  box.style.border='1px solid var(--border)'; box.style.borderRadius='10px'; box.style.padding='8px';
-  box.style.display='grid'; box.style.gridTemplateColumns='1fr 60px'; box.style.gap='6px'; box.style.zIndex='10';
+  box.style.position='absolute'; box.style.right='12px'; box.style.top='86px'; box.style.background='#0c1420dd';
+  box.style.border='1px solid var(--border)'; box.style.borderRadius='12px'; box.style.padding='10px';
+  box.style.display='grid'; box.style.gridTemplateColumns='auto 160px'; box.style.gap='8px'; box.style.zIndex='10'; box.style.backdropFilter='blur(6px)';
   box.innerHTML=`
-    <div class="label">Brush Size</div><div><input id="bSize" type="range" min="2" max="120" step="1" value="${S.brush.size}" class="range"></div>
-    <div class="label">Opacity</div><div><input id="bOp" type="range" min="0.05" max="1" step="0.01" value="${S.brush.opacity}" class="range"></div>
-    <div class="label">Hardness</div><div><input id="bHard" type="range" min="0" max="1" step="0.01" value="${S.brush.hardness}" class="range"></div>
+    <div class="label">Brush Size</div><input id="bSize" type="range" min="2" max="140" step="1" value="${S.brush.size}" class="range">
+    <div class="label">Opacity</div><input id="bOp" type="range" min="0.05" max="1" step="0.01" value="${S.brush.opacity}" class="range">
+    <div class="label">Hardness</div><input id="bHard" type="range" min="0" max="1" step="0.01" value="${S.brush.hardness}" class="range">
     <div class="label">Color</div><input id="bColor" type="color" value="${S.brush.color}" />
   `;
   document.body.appendChild(box);
@@ -860,23 +1107,26 @@ function loadPaintFromDataURL(dataURL){
   qs('#bColor').oninput=e=>S.brush.color=e.target.value;
 })();
 
-/* ======= Demo image ======= */
+/* ===== Demo image ===== */
 function loadDemoImage(){
   const c=document.createElement('canvas'), g=c.getContext('2d');
   c.width=1600; c.height=900;
   const grd=g.createLinearGradient(0,0,1600,900);
   grd.addColorStop(0,'#304ffe'); grd.addColorStop(1,'#00e5ff');
   g.fillStyle=grd; g.fillRect(0,0,c.width,c.height);
-  g.fillStyle='#ffffff'; g.font='900 220px system-ui, Arial'; g.globalAlpha=.12;
-  g.fillText('pictr', 440, 520);
+  g.fillStyle='#ffffff'; g.font='900 220px Inter, system-ui'; g.globalAlpha=.12; g.fillText('pictr', 440, 520);
   const img=new Image();
   img.onload=async()=>{ await setBitmapFromImage(img); afterImageLoaded(); setHUD('Demo image loaded'); };
   img.src=c.toDataURL('image/png');
 }
 
-/* ======= Init ======= */
-function setHUDReady(){ setHUD('Ready. Click Open, drop, or paste an image.'); }
-buildAdjustUI(); resizeCanvases(); setHUDReady();
+/* ===== Init ===== */
+function drawPaintLayer(){} // noop (own canvas)
+function setHUDReady(){ setHUD('Ready. Click Import, drop, or paste an image.'); }
+function refreshAll(){ refreshAllSliderValues(); }
+function refreshAllSliderValues(){ refreshAllSliderValues = refreshAllSliderValues; } // (kept above)
+function refreshTextList(){} // redefined earlier; here to ensure order (already defined)
+resizeCanvases(); setHUDReady();
 
 </script>
 </body>
