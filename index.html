@@ -24,8 +24,8 @@
     overflow:hidden;
   }
 
-  /* Layout */
   .app{display:grid;grid-template-rows:72px 1fr 54px;height:100%}
+
   header{
     display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);
     background:linear-gradient(180deg,#0f1622,#0b121c); position:relative; z-index:3;
@@ -35,7 +35,6 @@
     background:conic-gradient(from 180deg,var(--accent),var(--accent2));box-shadow:0 0 18px var(--accent)}
   .spacer{flex:1}
 
-  /* Buttons */
   .btn{
     background:linear-gradient(180deg,#172233,#121a27);border:1px solid var(--border);
     color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
@@ -51,11 +50,9 @@
   .btn.danger{border-color:#3a1212;background:#1a0c0c}
   input[type="file"]{display:none}
 
-  /* Main grid */
   .main{display:grid;grid-template-columns:280px 1fr 320px;gap:12px;padding:12px;min-height:0}
   @media (max-width:1200px){ .main{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto} }
 
-  /* Cards / panels */
   .panel{
     background:linear-gradient(180deg,var(--card),var(--card2));
     border:1px solid var(--border); border-radius:16px; overflow:auto; min-height:0; box-shadow:inset 0 14px 40px rgba(0,0,0,.25)
@@ -67,7 +64,6 @@
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .preset-list{display:flex;gap:8px;overflow:auto;padding:8px 12px}
 
-  /* Viewer */
   .viewer{
     position:relative;
     background:
@@ -87,27 +83,22 @@
   .status-dot{width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8}
   .zoom-badge{position:absolute;right:12px;bottom:12px;background:#0c1420dd;border:1px solid var(--border);padding:8px 10px;border-radius:10px;font-size:12px;backdrop-filter:blur(6px)}
 
-  /* Slider */
   .range{appearance:none;width:100%;height:6px;border-radius:999px;background:#1a2435;outline:none}
   .range::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;
     background:linear-gradient(180deg,#e7f3ff,#a7d4ff);border:1px solid #7bb7ff;box-shadow:0 0 0 4px #132139}
   .val{font-variant-numeric:tabular-nums;text-align:right;color:#cbd8e6}
 
-  /* Chips */
   .chip{flex:0 0 auto;padding:8px 12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:#0f1a2a;color:#cfe3ff;transition:.15s;font-size:12px}
   .chip:hover{background:#15233a}
 
-  /* Layers / text */
   .layer-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px}
   .layer-row:hover{background:#0f1725}
   .thumb{width:22px;height:22px;border-radius:4px;background:#1b2536;display:inline-block;border:1px solid #223149}
   .note{color:var(--muted);font-size:12px;padding:6px 12px}
 
-  /* Footer */
   .footer{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border);background:#0b121c}
   .kbd{border:1px solid #2a3648;background:#121b28;padding:2px 6px;border-radius:6px;font-size:12px;color:#c9d7ea}
 
-  /* Collapsible sections (UX nicety) */
   .collapsible{border-top:1px solid #0f1726}
   .collapsible summary{
     list-style:none; cursor:pointer; user-select:none;
@@ -122,7 +113,6 @@
 </head>
 <body>
 <div class="app">
-  <!-- HEADER -->
   <header>
     <div class="brand"><span class="dot"></span>pictr</div>
 
@@ -150,9 +140,8 @@
     <button class="btn small ok" id="btnExport" title="Export (E)">Export</button>
   </header>
 
-  <!-- MAIN -->
   <div class="main">
-    <!-- LEFT: Quick actions / History -->
+    <!-- LEFT -->
     <div class="panel" aria-label="Quick actions and History">
       <details class="collapsible" open>
         <summary><span class="chev">▶</span> Quick actions</summary>
@@ -196,7 +185,7 @@
       </details>
     </div>
 
-    <!-- CENTER: Viewer -->
+    <!-- CENTER -->
     <div class="viewer" id="viewer" aria-label="Canvas Viewer">
       <div class="dropzone" id="drop">
         <div style="font-size:18px;font-weight:700;margin-bottom:6px">Drop a photo or RAW (CR2/NEF/ARW/DNG…)</div>
@@ -209,7 +198,7 @@
       <div class="zoom-badge"><span id="zoomLabel">100%</span></div>
     </div>
 
-    <!-- RIGHT: Adjust / Layers / Export -->
+    <!-- RIGHT -->
     <div class="panel" aria-label="Adjustments and Export">
       <details class="collapsible" open>
         <summary><span class="chev">▶</span> Light</summary>
@@ -283,7 +272,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     <div class="note">Shortcuts:
       <span class="kbd">V</span> Move
@@ -322,7 +310,7 @@ const S = {
   dirty:false,rendering:false,previewScale:1
 };
 
-/* ===== Elements & Contexts ===== */
+/* ===== Elements ===== */
 const els = {
   file: qs('#fileInput'),
   open: qs('#btnOpen'), paste: qs('#btnPaste'), demo: qs('#btnDemo'),
@@ -347,7 +335,7 @@ const ctx = els.preview.getContext('2d',{willReadFrequently:true});
 const paintCtx = els.paint.getContext('2d',{willReadFrequently:true});
 const cropCtx = els.cropHud.getContext('2d');
 
-/* ===== Build UI: grouped sliders (Light/Color/Detail) ===== */
+/* ===== Build Sliders (Light/Color/Detail) ===== */
 const LIGHT = [
   {key:'exposure',min:-2,max:2,step:0.01,label:'Exposure (EV)'},
   {key:'contrast',min:-1,max:1,step:0.01,label:'Contrast'},
@@ -379,7 +367,6 @@ function buildSliders(sectionId, spec){
     const val=document.createElement('div'); val.className='val'; val.innerHTML=`<span id="val-${sp.key}">${fmt2(S.params[sp.key])}</span>`;
     const wrap=document.createElement('div'); wrap.appendChild(input);
     row.appendChild(label); row.appendChild(wrap); row.appendChild(val); sec.appendChild(row);
-    // interactions
     input.addEventListener('input',()=>{ const k=input.dataset.key; S.params[k]=Number(input.value); qs(`#val-${k}`).textContent=fmt2(S.params[k]); markDirty(); });
     input.addEventListener('change',()=>pushHistory());
     input.addEventListener('dblclick',()=>{ // reset this slider
@@ -390,11 +377,23 @@ function buildSliders(sectionId, spec){
     });
   });
 }
-buildSliders('#lightSection', LIGHT);
-buildSliders('#colorSection', COLOR);
-buildSliders('#detailSection', DETAIL);
+function buildUI(){
+  buildSliders('#lightSection', LIGHT);
+  buildSliders('#colorSection', COLOR);
+  buildSliders('#detailSection', DETAIL);
+}
+function refreshAllSliderValues(){
+  document.querySelectorAll('input.range').forEach(i=>{
+    const k=i.dataset.key; i.value=S.params[k];
+    const lab=qs(`#val-${k}`); if(lab) lab.textContent=fmt2(S.params[k]);
+  });
+}
 
-/* ===== Import: Click / DragDrop / Paste with RAW (CR2/NEF/ARW/DNG…) ===== */
+/* ===== Import (Click / DragDrop / Paste) + RAW ===== */
+const RAW_EXTS = ['cr2','cr3','nef','arw','raf','dng','orf','rw2','pef','srw','kdc','mrw','erf'];
+const extOf=(name='')=>{ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():''; };
+const isRawFile=(file)=> RAW_EXTS.includes(extOf(file.name||''));
+
 els.open.addEventListener('click', ()=> els.file.click());
 els.file.addEventListener('change', ev=>{
   const f = ev.target.files?.[0]; if (f) loadFile(f); ev.target.value='';
@@ -418,32 +417,16 @@ window.addEventListener('paste', (e)=>{
 });
 els.demo.addEventListener('click', ()=> loadDemoImage());
 
-/* ===== Robust RAW loader =====
-   1) If file is TIFF-family RAW (CR2/NEF/ARW/ORF/RW2/DNG/…): parse IFDs
-      - Use tags 0x0201/0x0202 (JPEGInterchangeFormat/Length)
-      - Also DNG Preview tags 0xC6F0/0xC6F1 (PreviewImageStart/Length)
-      - Consider SubIFDs (0x014A) and Exif IFD pointer (0x8769)
-      Pick the largest valid JPEG range.
-   2) Else: fallback to scanning for SOI/EOI JPEG blocks and pick largest.
-*/
-const RAW_EXTS = ['cr2','cr3','nef','arw','raf','dng','orf','rw2','pef','srw','kdc','mrw','erf'];
-function extOf(name=''){ const m=/\.([a-z0-9]+)$/i.exec(name||''); return m?m[1].toLowerCase():''; }
-function isRawFile(file){ const ext = extOf(file.name); return RAW_EXTS.includes(ext); }
-
 async function loadFile(file){
   try{
     if (isRawFile(file)){
       const ext = extOf(file.name);
-      setHUD(`Reading ${ext.toUpperCase()}… looking for embedded preview`);
+      setHUD(`Reading ${ext.toUpperCase()}… extracting preview`);
       const buf = await file.arrayBuffer();
       let jpegBuf = null;
 
-      // CR2/NEF/ARW/DNG/… (TIFF-based)
-      if (isTIFF(buf)) {
-        jpegBuf = parseTIFFForPreview(buf);
-      }
-      // CR3 (ISOBMFF) & RAF/etc. — fallback scan often works
-      if (!jpegBuf) jpegBuf = findLargestJPEG(buf);
+      if (isTIFF(buf)) jpegBuf = parseTIFFForPreview(buf);
+      if (!jpegBuf) jpegBuf = findLargestJPEG(buf); // CR3 or odd cases
 
       if (!jpegBuf){
         setHUD('No embedded JPEG preview found (or unreadable). For true RAW development (WASM), I can add LibRaw.');
@@ -452,7 +435,6 @@ async function loadFile(file){
       await loadFromBlob(new Blob([jpegBuf], {type:'image/jpeg'}), `${ext.toUpperCase()} preview`);
       return;
     }
-    // Normal images
     await loadFromBlob(file);
   }catch(e){
     console.error(e); setHUD('Failed to load image');
@@ -470,7 +452,6 @@ async function loadFromBlob(blob, label){
   };
   img.onerror = async ()=>{
     URL.revokeObjectURL(url);
-    // Try WebCodecs if available
     if (window.ImageDecoder && blob.type && await ImageDecoder.isTypeSupported(blob.type).catch(()=>false)) {
       try{
         const dec = new ImageDecoder({data: blob, type: blob.type});
@@ -501,60 +482,50 @@ function afterImageLoaded(){
   S.history=[]; S.historyIdx=-1; pushHistory(true); markDirty();
 }
 
-/* ===== TIFF/CR2 parser: find embedded JPEG preview ===== */
+/* ===== TIFF/CR2/DNG parser to get embedded JPEG ===== */
 function isTIFF(ab){
+  if (ab.byteLength<4) return false;
   const u = new Uint8Array(ab,0,4);
-  const ii = (u[0]===0x49&&u[1]===0x49&&u[2]===0x2A&&u[3]===0x00);
-  const mm = (u[0]===0x4D&&u[1]===0x4D&&u[2]===0x00&&u[3]===0x2A);
-  // CR2: 'II*\0' + 'CR' later; DNG also TIFF
-  return ii || mm;
+  return (u[0]===0x49&&u[1]===0x49&&u[2]===0x2A&&u[3]===0x00) || (u[0]===0x4D&&u[1]===0x4D&&u[2]===0x00&&u[3]===0x2A);
 }
 function parseTIFFForPreview(ab){
   const u = new DataView(ab);
   const byteOrder = u.getUint16(0,false);
-  const little = (byteOrder===0x4949); // 'II'
-  const big = (byteOrder===0x4D4D);    // 'MM'
+  const little = (byteOrder===0x4949);
+  const big = (byteOrder===0x4D4D);
   if (!little && !big) return null;
-  const le = little; // boolean
+  const le = little;
 
   const get16=(o)=>u.getUint16(o,le);
   const get32=(o)=>u.getUint32(o,le);
 
   const firstIFD = get32(4);
   const visited = new Set();
-  const stack = [firstIFD];
   let best = null;
 
   function readValue(tagType, count, valOff){
-    const sizeOf = (t)=> t===1||t===2||t===6||t===7 ? 1 : t===3 ? 2 : 4; // BYTE/ASCII/SBYTE/UNDEFINED=1, SHORT=2, LONG/RATIONAL=4 (we only need LONG)
+    const sizeOf = (t)=> t===1||t===2||t===6||t===7 ? 1 : t===3 ? 2 : 4;
     const total = sizeOf(tagType) * count;
     if (total <= 4) {
-      // value is packed into valOff
-      if (tagType===4) return [valOff>>>0]; // LONG
-      if (tagType===3) return [valOff & 0xFFFF]; // SHORT
+      if (tagType===4) return [valOff>>>0];
+      if (tagType===3) return [valOff & 0xFFFF];
       return [valOff>>>0];
     } else {
-      // points to data
       const base = valOff>>>0;
       const arr = [];
       if (tagType===4){ for(let i=0;i<count;i++) arr.push(get32(base+i*4)); }
       else if (tagType===3){ for(let i=0;i<count;i++) arr.push(get16(base+i*2)); }
-      else { /* ignore other types */ }
       return arr;
     }
   }
 
   function scanIFD(ifdOff){
-    if (ifdOff===0 || visited.has(ifdOff)) return;
-    if (ifdOff+2 > u.byteLength) return;
+    if (!ifdOff || visited.has(ifdOff) || ifdOff+2>u.byteLength) return;
     visited.add(ifdOff);
     const num = get16(ifdOff);
     const base = ifdOff + 2;
-    let nextIFD = 0;
-    let candidates = [];
-
-    // Collect offsets to other IFDs we should visit too
     const toVisit = [];
+    let dngStart=null, dngLen=null, jfifOff=null, jfifLen=null;
 
     for (let i=0;i<num;i++){
       const e = base + i*12;
@@ -564,38 +535,12 @@ function parseTIFFForPreview(ab){
       const count= get32(e+4);
       const val  = get32(e+8);
 
-      // SubIFDs (0x014A) -> LONG array of IFD offsets
-      if (tag===0x014A){ const offs = readValue(type,count,val); offs.forEach(o=>{ if(o) toVisit.push(o); }); }
-
-      // Exif IFD Pointer (0x8769)
-      if (tag===0x8769){ toVisit.push(val); }
-
-      // DNG PreviewImageStart (0xC6F0) + PreviewImageLength (0xC6F1)
-      if (tag===0xC6F0 || tag===0xC6F1){
-        candidates.push({kind:'dng', tag, val, type, count});
-      }
-
-      // JPEGInterchangeFormat / Length (0x0201 / 0x0202)
-      if (tag===0x0201 || tag===0x0202){
-        candidates.push({kind:'jfif', tag, val, type, count});
-      }
-    }
-
-    // Capture next-IFD link
-    nextIFD = get32(base + num*12);
-    if (nextIFD) toVisit.push(nextIFD);
-
-    // Resolve candidates into (offset,length) and pick largest valid
-    let dngStart=null, dngLen=null, jfifOff=null, jfifLen=null;
-
-    for (const c of candidates){
-      if (c.kind==='dng'){
-        if (c.tag===0xC6F0) dngStart = readValue(c.type,c.count,c.val)[0];
-        if (c.tag===0xC6F1) dngLen   = readValue(c.type,c.count,c.val)[0];
-      } else if (c.kind==='jfif'){
-        if (c.tag===0x0201) jfifOff = readValue(c.type,c.count,c.val)[0];
-        if (c.tag===0x0202) jfifLen = readValue(c.type,c.count,c.val)[0];
-      }
+      if (tag===0x014A){ const offs = readValue(type,count,val); offs.forEach(o=>{ if(o) toVisit.push(o); }); }       // SubIFDs
+      if (tag===0x8769){ toVisit.push(val); }                                                                           // ExifIFDPointer
+      if (tag===0xC6F0) dngStart = readValue(type,count,val)[0];                                                        // DNG PreviewImageStart
+      if (tag===0xC6F1) dngLen   = readValue(type,count,val)[0];                                                        // DNG PreviewImageLength
+      if (tag===0x0201) jfifOff  = readValue(type,count,val)[0];                                                        // JPEGInterchangeFormat
+      if (tag===0x0202) jfifLen  = readValue(type,count,val)[0];                                                        // JPEGInterchangeFormatLength
     }
 
     const addCandidate=(off,len)=>{
@@ -607,28 +552,21 @@ function parseTIFFForPreview(ab){
     addCandidate(dngStart,dngLen);
     addCandidate(jfifOff,jfifLen);
 
-    // Visit linked IFDs
+    const nextIFD = get32(base + num*12);
+    if (nextIFD) toVisit.push(nextIFD);
     toVisit.forEach(o=> scanIFD(o));
   }
 
   scanIFD(firstIFD);
   if (best){
-    // Validate it looks like a JPEG (FFD8 ... FFD9)
     const a = new Uint8Array(ab, best.off, best.len);
     if (a[0]===0xFF && a[1]===0xD8) return ab.slice(best.off, best.off+best.len);
-    // Sometimes length overshoots; clamp to first EOI
     const idx = findEOI(a);
     if (idx>2) return ab.slice(best.off, best.off+idx);
   }
   return null;
 }
-
-function findEOI(u8){
-  for(let i=u8.length-2;i>=2;i--){ if (u8[i]===0xFF && u8[i+1]===0xD9) return i+2; }
-  return -1;
-}
-
-/* Fallback: scan for largest SOI/EOI JPEG block in the whole file */
+function findEOI(u8){ for(let i=u8.length-2;i>=2;i--){ if (u8[i]===0xFF && u8[i+1]===0xD9) return i+2; } return -1; }
 function findLargestJPEG(buf){
   const u = new Uint8Array(buf);
   let i=0, best=null;
@@ -640,9 +578,7 @@ function findLargestJPEG(buf){
         j++;
       }
       if (end>0){
-        const size=end-start;
-        if (!best || size>best.size) best={start,end,size};
-        i=end; continue;
+        const size=end-start; if (!best || size>best.size) best={start,end,size}; i=end; continue;
       } else break;
     }
     i++;
@@ -650,7 +586,7 @@ function findLargestJPEG(buf){
   return best ? buf.slice(best.start,best.end) : null;
 }
 
-/* ===== Viewer sizing & zoom ===== */
+/* ===== Viewer sizing, zoom, and quality ===== */
 function resizeCanvases(){
   const rect=els.viewer.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
   [els.preview,els.paint,els.cropHud].forEach(c=>{
@@ -689,7 +625,8 @@ els.viewer.addEventListener('wheel', (e)=>{
 },{passive:false});
 els.viewer.addEventListener('dblclick', ()=>{
   if (!S.imgBitmap) return;
-  if (Math.abs(S.zoom-1)<0.01) fitToScreen(); else { // toggle 100%
+  if (Math.abs(S.zoom-1)<0.01) fitToScreen();
+  else { // toggle to 100%
     const rect=els.viewer.getBoundingClientRect();
     let iw=S.origW, ih=S.origH; if(S.rot%180!==0) [iw,ih]=[ih,iw];
     S.zoom=1; S.viewX=(rect.width - iw*S.zoom)/2; S.viewY=(rect.height - ih*S.zoom)/2;
@@ -697,7 +634,7 @@ els.viewer.addEventListener('dblclick', ()=>{
   }
 });
 
-/* Drag to pan / draw / crop / text */
+/* ===== Interactions ===== */
 ['mousedown','touchstart'].forEach(type=>{
   els.viewer.addEventListener(type,(ev)=>{
     const p=pointerPos(ev,els.viewer);
@@ -725,7 +662,7 @@ els.viewer.addEventListener('dblclick', ()=>{
   });
 });
 
-/* ===== Tool switching & top buttons ===== */
+/* ===== Tool & Buttons ===== */
 function setTool(tool){
   S.tool=tool;
   for (const [k,btn] of Object.entries({move:els.buttons.move,crop:els.buttons.crop,brush:els.buttons.brush,text:els.buttons.text,erase:els.buttons.erase})){
@@ -819,13 +756,6 @@ els.quick.auto.onclick = ()=>{ if(!S.imgBitmap) return setHUD('Open a photo firs
 els.quick.vivid.onclick=()=>{ if(!S.imgBitmap) return setHUD('Open a photo first'); S.params=presetMap.vivid(S.params); refreshAllSliderValues(); markDirty(); pushHistory(); };
 els.quick.bw.onclick   =()=>{ if(!S.imgBitmap) return setHUD('Open a photo first'); S.params=presetMap.bw(S.params);    refreshAllSliderValues(); markDirty(); pushHistory(); };
 
-function refreshAllSliderValues(){
-  [...document.querySelectorAll('input.range')].forEach(i=>{
-    const k=i.dataset.key; i.value=S.params[k];
-    const lab=qs(`#val-${k}`); if(lab) lab.textContent=fmt2(S.params[k]);
-  });
-}
-
 /* ===== Crop ===== */
 function initCropDefault(){
   const r=imageRectOnScreen(); if(!r) return;
@@ -899,7 +829,7 @@ els.buttons.applyCrop.onclick=()=>{
 };
 els.buttons.cancelCrop.onclick=()=>{ S.crop.active=false; drawCropHUD(); setTool('move'); };
 
-/* ===== Brush / Paint ===== */
+/* ===== Paint ===== */
 function clearPaintLayer(){ paintCtx.clearRect(0,0,els.paint.width,els.paint.height); drawPaintLayer(); }
 els.buttons.clearPaint.onclick=()=>{ clearPaintLayer(); pushHistory(); };
 let stroke={active:false,last:null};
@@ -922,7 +852,7 @@ function drawBrushLine(a,b){
 }
 function drawPaintLayer(){}
 
-/* ===== Text labels ===== */
+/* ===== Text ===== */
 let draggingLabel=null;
 function createOrSelectLabel(p){
   const hit=S.labels.findLast(l=>{ const w=l.size*l.text.length*0.6, h=l.size*1.2; return p.x>=l.x&&p.x<=l.x+w&&p.y>=l.y-h&&p.y<=l.y; });
@@ -957,7 +887,7 @@ function drawLabelsOnScreen(g, labels){
   g.save(); labels.forEach(l=>{ g.globalAlpha=l.opacity; g.fillStyle=l.fill; g.font=`600 ${l.size}px Inter, system-ui, Arial`; g.textBaseline='alphabetic'; g.fillText(l.text,l.x,l.y); }); g.restore();
 }
 
-/* ===== Render pipeline ===== */
+/* ===== Render (HiDPI + 1:1 crisp rule) ===== */
 function markDirty(){ S.dirty=true; if(!S.rendering){ S.rendering=true; requestAnimationFrame(()=>{ render(); S.rendering=false; }); } }
 function render(){
   S.dirty=false; const g=ctx; const rect=els.viewer.getBoundingClientRect();
@@ -968,7 +898,7 @@ function render(){
     return;
   }
   g.save(); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
-  g.translate(S.viewX,S.viewY); g.scale(S.zoom,S.zoom); applyImageTransforms(g,0,0); drawWithPipeline(g,S.imgBitmap,S.params,false,S.labels); g.restore();
+  g.translate(S.viewX,S.viewY); g.scale(S.zoom,S.zoom); applyImageTransforms(g,0,0); drawWithPipeline(g,S.imgBitmap,S.params,false); g.restore();
   drawLabelsOnScreen(ctx,S.labels); drawCropHUD();
 }
 function applyImageTransforms(g,ox,oy){
@@ -976,11 +906,16 @@ function applyImageTransforms(g,ox,oy){
   if(S.rot%180!==0) [w,h]=[h,w]; g.translate(-w/2,-h/2);
 }
 function computePreviewScale(w,h){
-  const rect=els.viewer.getBoundingClientRect(); const maxPreview=Math.max(rect.width,rect.height)*1.25;
-  const scale=Math.min(1, maxPreview/Math.max(w,h)); S.previewScale=scale; return scale;
+  const rect = els.viewer.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const maxPreview = Math.max(rect.width, rect.height) * 1.25 * dpr;
+  const scale = Math.min(1, maxPreview / Math.max(w, h));
+  S.previewScale = scale;
+  return scale;
 }
 function drawWithPipeline(g, bitmap, p, fullRes=false){
-  const vw=S.origW, vh=S.origH; const scale=fullRes?1:computePreviewScale(vw,vh);
+  const vw=S.origW, vh=S.origH;
+  const scale = fullRes ? 1 : (S.zoom >= 1 ? 1 : computePreviewScale(vw, vh));
   const sw=Math.max(1,Math.round(vw*scale)), sh=Math.max(1,Math.round(vh*scale));
   const off=document.createElement('canvas'); off.width=sw; off.height=sh; const x=off.getContext('2d',{willReadFrequently:true});
   x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high'; x.drawImage(bitmap,0,0,sw,sh);
@@ -989,7 +924,8 @@ function drawWithPipeline(g, bitmap, p, fullRes=false){
   img=passVibranceSaturation(img,p.vibrance,(p.saturation??1));
   if(Math.abs(p.clarity)>0.001) img=passClarity(img,p.clarity);
   if(p.sharpness>0.001) img=passSharpen(img,p.sharpness);
-  x.putImageData(img,0,0); g.drawImage(off,0,0,vw,vh);
+  x.putImageData(img,0,0);
+  g.drawImage(off,0,0,vw,vh);
   if(p.vignette>0.001){
     const grad=g.createRadialGradient(vw/2,vh/2,Math.min(vw,vh)*0.25,vw/2,vh/2,Math.max(vw,vh)*0.65);
     grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,`rgba(0,0,0,${clamp(p.vignette,0,1)})`);
@@ -1066,6 +1002,8 @@ function passSharpen(imageData,amount){
 }
 
 /* ===== Export ===== */
+els.buttons.exportNow.onclick=()=>doExport(false);
+els.buttons.exportFull.onclick=()=>doExport(true);
 function doExport(full){
   if(!S.imgBitmap){ setHUD('Open a photo first'); return; }
   setHUD(full?'Rendering full-res…':'Exporting…');
@@ -1121,12 +1059,9 @@ function loadDemoImage(){
 }
 
 /* ===== Init ===== */
-function drawPaintLayer(){} // noop (own canvas)
 function setHUDReady(){ setHUD('Ready. Click Import, drop, or paste an image.'); }
-function refreshAll(){ refreshAllSliderValues(); }
-function refreshAllSliderValues(){ refreshAllSliderValues = refreshAllSliderValues; } // (kept above)
-function refreshTextList(){} // redefined earlier; here to ensure order (already defined)
-resizeCanvases(); setHUDReady();
+function drawPaintLayer(){} // noop
+buildUI(); resizeCanvases(); setHUDReady();
 
 </script>
 </body>
